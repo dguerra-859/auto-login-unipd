@@ -1,14 +1,52 @@
 const chiaveOverlayCaricamento = 'unipd-login-loading';
+const durataFlussoLogin = 120000;
+
+function rimuoviOverlayCaricamento() {
+  const overlay = document.getElementById(chiaveOverlayCaricamento);
+  if (overlay) overlay.remove();
+}
+
+function leggiFlussoLogin(callback) {
+  chrome.runtime.sendMessage({ type: 'get-login-flow' }, (flusso) => {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError.message);
+      callback(null);
+      return;
+    }
+
+    callback(flusso);
+  });
+}
+
+function aggiornaFaseLogin(fase, callback) {
+  chrome.runtime.sendMessage({ type: 'update-login-flow', fase }, (risposta) => {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError.message);
+      azzeraFlussoLogin();
+      return;
+    }
+
+    if (!risposta || !risposta.ok) {
+      console.error(risposta && risposta.errore ? risposta.errore : 'Impossibile aggiornare il flusso di login.');
+      azzeraFlussoLogin();
+      return;
+    }
+
+    callback();
+  });
+}
+
+function azzeraFlussoLogin(rimuoviOverlay) {
+  chrome.runtime.sendMessage({ type: 'clear-login-flow' }, () => {
+    if (chrome.runtime.lastError) console.error(chrome.runtime.lastError.message);
+  });
+  if (rimuoviOverlay !== false) rimuoviOverlayCaricamento();
+}
 
 function mostraCaricamentoSeAttivo() {
-  chrome.storage.local.get(['unipd_action_stage', 'unipd_action_time'], (dati) => {
-    const scaduta = !dati.unipd_action_time || Date.now() - dati.unipd_action_time > 120000;
+  leggiFlussoLogin((flusso) => {
     const fasiAttive = ['root', 'login', 'shibboleth', 'uniweb_root', 'uniweb_shibboleth'];
-
-    if (scaduta || !fasiAttive.includes(dati.unipd_action_stage)) {
-      if (dati.unipd_action_stage && scaduta) {
-        chrome.storage.local.remove(['unipd_action_stage', 'unipd_action_time']);
-      }
+    if (!flusso || Date.now() - flusso.aggiornatoIl > durataFlussoLogin || !fasiAttive.includes(flusso.fase)) {
       return;
     }
 
@@ -32,204 +70,198 @@ function mostraCaricamentoSeAttivo() {
 
     overlay.append(logo, testo, spinner);
     document.documentElement.append(overlay);
-    window.setTimeout(() => overlay.remove(), 120000);
+    window.setTimeout(rimuoviOverlayCaricamento, durataFlussoLogin);
   });
 }
 
 mostraCaricamentoSeAttivo();
 
-function avviaEstensioneUniPD() {
-  chrome.storage.local.get(['unipd_user', 'unipd_dominio', 'unipd_pass', 'unipd_autosubmit', 'unipd_action_stage', 'unipd_action_time'], (dati) => {
-    // Non fa nulla se l'utente non ha ancora inserito i dati nel popup
+function avviaEstensioneUniPD(tentativi = 0) {
+  chrome.storage.local.get(['unipd_user', 'unipd_dominio', 'unipd_pass', 'unipd_autosubmit'], (dati) => {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError.message);
+      rimuoviOverlayCaricamento();
+      return;
+    }
+
     if (!dati.unipd_user || !dati.unipd_pass) {
-      chrome.storage.local.remove(['unipd_action_stage', 'unipd_action_time']);
-      const overlay = document.getElementById(chiaveOverlayCaricamento);
-      if (overlay) overlay.remove();
+      azzeraFlussoLogin();
       return;
     }
 
-    const host = window.location.hostname;
-    const actionScaduta = !dati.unipd_action_time || Date.now() - dati.unipd_action_time > 120000;
-    const actionStage = actionScaduta ? null : dati.unipd_action_stage;
-
-    const azzeraAzione = () => {
-      chrome.storage.local.remove(['unipd_action_stage', 'unipd_action_time']);
-      const overlay = document.getElementById(chiaveOverlayCaricamento);
-      if (overlay) overlay.remove();
-    };
-
-    // Uniweb: il pulsante della popup clicca il link Login; l'uso manuale resta passivo
-    if (host === 'uniweb.unipd.it') {
-      if (actionStage !== 'uniweb_root') {
-        if (actionStage) azzeraAzione();
+    leggiFlussoLogin((flusso) => {
+      if (!flusso || Date.now() - flusso.aggiornatoIl > durataFlussoLogin) {
+        rimuoviOverlayCaricamento();
         return;
       }
 
-      const linkLogin = document.getElementById('menu_link-navbox_account_auth/Logon')
-        || document.querySelector('a[href*="/auth/Logon.do"]');
+      const host = window.location.hostname;
+      const actionStage = flusso.fase;
 
-      if (linkLogin) {
-        const urlLogin = linkLogin.href;
-        chrome.storage.local.set({
-          unipd_action_stage: 'uniweb_shibboleth',
-          unipd_action_time: Date.now()
-        }, () => {
-          window.location.assign(urlLogin);
-        });
-      } else {
-        azzeraAzione();
-      }
-      return;
-    }
-
-    // CASO 1: Pagina Moodle, gestita solo quando il pulsante della popup ha avviato il flusso
-    if (host.endsWith('elearning.unipd.it')) {
-      if (!actionStage) {
-        if (dati.unipd_action_stage) azzeraAzione();
-        return;
-      }
-
-      // Dalla radice, cerca e clicca il link Login.
-      if (actionStage === 'root') {
-        const selettoriLogin = [
-          'a[href*="/login/index.php"]',
-          'a[href*="/login/"]',
-          'a.login'
-        ];
-        let linkLogin = null;
-        for (const selettore of selettoriLogin) {
-          linkLogin = document.querySelector(selettore);
-          if (linkLogin) break;
+      if (host === 'uniweb.unipd.it') {
+        if (actionStage === 'uniweb_shibboleth') {
+          if (window.location.pathname.startsWith('/auth/Logon.do')) {
+            window.setTimeout(() => {
+              if (window.location.pathname.startsWith('/auth/Logon.do')) {
+                azzeraFlussoLogin();
+              }
+            }, 15000);
+          } else {
+            azzeraFlussoLogin();
+          }
+          return;
         }
 
-        if (!linkLogin) {
-          linkLogin = Array.from(document.querySelectorAll('a')).find((link) =>
-            link.textContent.trim().toLowerCase() === 'login'
-          );
-        }
+        if (actionStage === 'uniweb_root') {
+          const linkLogin = document.getElementById('menu_link-navbox_account_auth/Logon')
+            || document.querySelector('a[href*="/auth/Logon.do"]');
+          if (!linkLogin) {
+            azzeraFlussoLogin();
+            return;
+          }
 
-        if (linkLogin) {
-          const urlLogin = linkLogin.href;
-          chrome.storage.local.set({
-            unipd_action_stage: 'login',
-            unipd_action_time: Date.now()
-          }, () => {
-            window.location.assign(urlLogin);
+          aggiornaFaseLogin('uniweb_shibboleth', () => {
+            window.location.assign(linkLogin.href);
           });
-        } else {
-          // Nessun link Login: si tratta probabilmente di una sessione gia autenticata.
-          azzeraAzione();
+          return;
         }
+
+        azzeraFlussoLogin();
         return;
       }
 
-      if (actionStage !== 'login') {
-        const endpointShibboleth = actionStage === 'shibboleth'
-          && window.location.pathname.startsWith('/auth/shibboleth/');
-        if (endpointShibboleth) {
+      if (host.endsWith('elearning.unipd.it')) {
+        if (actionStage === 'root') {
+          const nonAutenticato = document.body.classList.contains('notloggedin');
+          if (!nonAutenticato) {
+            azzeraFlussoLogin();
+            return;
+          }
+
+          const linkLogin = Array.from(document.querySelectorAll('a[href]')).find((link) => {
+            const url = new URL(link.href, window.location.href);
+            return url.origin === window.location.origin
+              && url.pathname.replace(/\/+$/, '') === '/login/index.php';
+          });
+
+          if (!linkLogin) {
+            azzeraFlussoLogin();
+            return;
+          }
+
+          aggiornaFaseLogin('login', () => {
+            window.location.assign(linkLogin.href);
+          });
+          return;
+        }
+
+        if (actionStage === 'login') {
+          const erroreLogin = document.getElementById('loginerrormessage');
+          if (erroreLogin && erroreLogin.textContent.trim() !== '') {
+            azzeraFlussoLogin();
+            return;
+          }
+
+          const bottoneSSO = document.querySelector('a.login-identityprovider-btn[href*="shibboleth"]');
+          if (!bottoneSSO) {
+            azzeraFlussoLogin();
+            return;
+          }
+
+          aggiornaFaseLogin('shibboleth', () => {
+            window.location.assign(bottoneSSO.href);
+          });
+          return;
+        }
+
+        if (actionStage === 'shibboleth' && window.location.pathname.startsWith('/auth/shibboleth/')) {
           window.setTimeout(() => {
             if (window.location.pathname.startsWith('/auth/shibboleth/')) {
-              azzeraAzione();
+              azzeraFlussoLogin();
             }
           }, 15000);
-        } else {
-          azzeraAzione();
+          return;
         }
+
+        azzeraFlussoLogin();
         return;
       }
 
-      // Evita loop se Moodle sta mostrando un errore di login
-      const erroreLogin = document.getElementById('loginerrormessage');
-      if (erroreLogin && erroreLogin.textContent.trim() !== '') {
-        azzeraAzione();
-        return;
+      if (host === 'shibidp.cca.unipd.it') {
+        if (actionStage !== 'shibboleth' && actionStage !== 'uniweb_shibboleth') {
+          azzeraFlussoLogin();
+          return;
+        }
+
+        const userPulito = dati.unipd_user.split('@')[0];
+        const idRadio = dati.unipd_dominio || 'radio2';
+        const autoSubmit = dati.unipd_autosubmit !== false;
+        const radioScelto = document.getElementById(idRadio);
+
+        if (radioScelto) {
+          radioScelto.checked = true;
+          radioScelto.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        const campoUserVisibile = document.getElementById('j_username_js');
+        const campoUserNascosto = document.getElementById('j_username');
+        const campoPass = document.getElementById('password');
+        const bottoneAccedi = document.getElementById('login_button_js');
+
+        if (!campoUserVisibile || !campoPass) {
+          if (tentativi < 20) {
+            window.setTimeout(() => avviaEstensioneUniPD(tentativi + 1), 250);
+            return;
+          }
+          azzeraFlussoLogin();
+          return;
+        }
+
+        const suffissi = {
+          radio1: '@unipd.it',
+          radio2: '@studenti.unipd.it',
+          radio3: '@ext.unipd.it'
+        };
+
+        campoUserVisibile.value = userPulito;
+        campoUserVisibile.dispatchEvent(new Event('input', { bubbles: true }));
+        campoUserVisibile.dispatchEvent(new Event('change', { bubbles: true }));
+
+        if (campoUserNascosto) {
+          campoUserNascosto.value = userPulito + (suffissi[idRadio] || '@studenti.unipd.it');
+        }
+
+        campoPass.value = dati.unipd_pass;
+        campoPass.dispatchEvent(new Event('input', { bubbles: true }));
+        campoPass.dispatchEvent(new Event('change', { bubbles: true }));
+
+        if (autoSubmit && bottoneAccedi) {
+          window.setTimeout(() => {
+            bottoneAccedi.click();
+            azzeraFlussoLogin(false);
+            window.setTimeout(rimuoviOverlayCaricamento, 10000);
+          }, 300);
+        } else {
+          azzeraFlussoLogin();
+        }
       }
-
-      // Cerca il pulsante "SingleSignOn - UniPD"
-      const bottoneSSO = document.querySelector('a.login-identityprovider-btn[href*="shibboleth"]');
-      if (bottoneSSO) {
-        const urlSSO = bottoneSSO.href;
-        chrome.storage.local.set({
-          unipd_action_stage: 'shibboleth',
-          unipd_action_time: Date.now()
-        }, () => {
-          window.location.assign(urlSSO);
-        });
-      } else {
-        azzeraAzione();
-      }
-      return;
-    }
-
-    // CASO 2: Pagina effettiva di login Shibboleth (shibidp.cca.unipd.it)
-    if (host === 'shibidp.cca.unipd.it') {
-      if (actionStage !== 'shibboleth' && actionStage !== 'uniweb_shibboleth') {
-        if (actionStage) azzeraAzione();
-        return;
-      }
-
-      const userPulito = dati.unipd_user.split('@')[0];
-      const idRadio = dati.unipd_dominio || 'radio2'; // Default: @studenti.unipd.it
-      const autoSubmit = dati.unipd_autosubmit !== false;
-
-      // 1. Seleziona il radio button del dominio
-      const radioScelto = document.getElementById(idRadio);
-      if (radioScelto) {
-        radioScelto.checked = true;
-        radioScelto.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-
-      // 2. Individua i campi reali visibili
-      const campoUserVisibile = document.getElementById('j_username_js');
-      const campoUserNascosto = document.getElementById('j_username');
-      const campoPass = document.getElementById('password');
-      const bottoneAccedi = document.getElementById('login_button_js');
-
-      if (!campoUserVisibile || !campoPass) {
-        azzeraAzione();
-        return;
-      }
-
-      const suffissi = {
-        radio1: '@unipd.it',
-        radio2: '@studenti.unipd.it',
-        radio3: '@ext.unipd.it'
-      };
-
-      campoUserVisibile.value = userPulito;
-      campoUserVisibile.dispatchEvent(new Event('input', { bubbles: true }));
-      campoUserVisibile.dispatchEvent(new Event('change', { bubbles: true }));
-
-      if (campoUserNascosto) {
-        campoUserNascosto.value = userPulito + (suffissi[idRadio] || '@studenti.unipd.it');
-      }
-
-      campoPass.value = dati.unipd_pass;
-      campoPass.dispatchEvent(new Event('input', { bubbles: true }));
-      campoPass.dispatchEvent(new Event('change', { bubbles: true }));
-
-      // 3. Clicca su Accedi
-      if (autoSubmit && bottoneAccedi) {
-        setTimeout(() => {
-          bottoneAccedi.click();
-          chrome.storage.local.remove(['unipd_action_stage', 'unipd_action_time']);
-          const overlay = document.getElementById(chiaveOverlayCaricamento);
-          if (overlay) window.setTimeout(() => overlay.remove(), 10000);
-        }, 300);
-      } else {
-        azzeraAzione();
-      }
-    }
+    });
   });
 }
 
 const hostname = window.location.hostname;
 const avviaDopoCaricamentoDom = () => {
   const ritardo = hostname === 'shibidp.cca.unipd.it' ? 300 : 0;
-  setTimeout(avviaEstensioneUniPD, ritardo);
+  window.setTimeout(avviaEstensioneUniPD, ritardo);
 };
 
-if (document.readyState === 'loading') {
+if (hostname === 'shibidp.cca.unipd.it') {
+  if (document.readyState === 'complete') {
+    avviaDopoCaricamentoDom();
+  } else {
+    window.addEventListener('load', avviaDopoCaricamentoDom, { once: true });
+  }
+} else if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', avviaDopoCaricamentoDom, { once: true });
 } else {
   avviaDopoCaricamentoDom();

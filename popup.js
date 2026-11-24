@@ -8,6 +8,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnEntraUniweb = document.getElementById('entraUniweb');
   const divStato = document.getElementById('stato');
 
+  const avviaAccesso = (destinazione) => {
+    chrome.runtime.sendMessage({ type: 'start-login-flow', destinazione }, (risposta) => {
+      if (chrome.runtime.lastError) {
+        divStato.textContent = 'Impossibile avviare il login.';
+        console.error(chrome.runtime.lastError.message);
+        return;
+      }
+
+      if (!risposta || !risposta.ok) {
+        divStato.textContent = 'Impossibile avviare il login.';
+        console.error(risposta && risposta.errore ? risposta.errore : 'Risposta non valida dal processo in background.');
+      }
+    });
+  };
+
   // Carica eventuali dati già salvati quando si apre il popup
   chrome.storage.local.get(['unipd_user', 'unipd_dominio', 'unipd_pass', 'unipd_autosubmit'], (dati) => {
     if (dati.unipd_user) inputUser.value = dati.unipd_user;
@@ -39,20 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnEntra.addEventListener('click', () => {
-    chrome.storage.local.set({
-      unipd_action_stage: 'root',
-      unipd_action_time: Date.now()
-    }, () => {
-      chrome.tabs.create({ url: 'https://stem.elearning.unipd.it/' });
-    });
+    avviaAccesso('stem');
   });
 
   btnEntraUniweb.addEventListener('click', () => {
-    chrome.storage.local.set({
-      unipd_action_stage: 'uniweb_root',
-      unipd_action_time: Date.now()
-    }, () => {
-      chrome.tabs.create({ url: 'https://uniweb.unipd.it/Root.do#shortcut' });
-    });
+    avviaAccesso('uniweb');
   });
 });

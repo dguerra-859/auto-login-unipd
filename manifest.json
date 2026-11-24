@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Auto Login Portale Studenti (Non Ufficiale)",
-  "version": "2.4",
+  "version": "2.9",
   "description": "Salta la schermata SSO di Moodle e compila automaticamente username, dominio e password.",
   "icons": {
     "16": "icon16.png",
@@ -11,6 +11,9 @@
   "permissions": [
     "storage"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Impostazioni Auto Login"

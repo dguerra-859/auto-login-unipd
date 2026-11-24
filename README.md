@@ -51,7 +51,7 @@ L'estensione verra caricata senza passare attraverso il Chrome Web Store.
 1. Apri il popup dell'estensione dalla barra del browser.
    - Usa **Entra in STEM eLearning** per aprire direttamente `https://stem.elearning.unipd.it/`; se hai gia una sessione attiva, entri nel sito senza rifare l'accesso.
    - Il pulsante avvia il percorso Login → SSO. Visitare manualmente STEM o cliccare direttamente "Login" non attiva automaticamente l'accesso SSO.
-   - Usa **Entra in Uniweb** per aprire `https://uniweb.unipd.it/Root.do#shortcut` e avviare il percorso Login. Visitare o usare Uniweb manualmente non attiva l'accesso automatico.
+   - Usa **Entra in Uniweb** per aprire Uniweb e avviare il Login SSO solo in quel flusso. Visitare o usare Uniweb manualmente non attiva l'accesso automatico.
 2. Inserisci il nome utente senza `@...`, ad esempio `mario.rossi`.
 3. Seleziona il profilo corrispondente.
 4. Inserisci la password.
@@ -63,10 +63,12 @@ La compilazione automatica e la schermata di caricamento si attivano solo nei fl
 ## Struttura del progetto
 
 - `manifest.json`: configurazione Manifest V3, permessi e content script
+- `background.js`: avvio e stato del flusso di login isolato per scheda
 - `popup.html`: interfaccia delle impostazioni
 - `popup.js`: caricamento e salvataggio delle impostazioni
 - `content.js`: compilazione e eventuale invio del modulo SSO
 - `loading.css`: stile della schermata di caricamento durante il login
+- `loading.html`: schermata mostrata durante l'avvio del flusso
 - `logo.png`: logo mostrato nella schermata di caricamento
 - `README.md`: documentazione del progetto
 
