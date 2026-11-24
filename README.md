@@ -19,6 +19,7 @@ L'utente e l'unico responsabile della gestione delle proprie credenziali, dell'u
   - `@ext.unipd.it`
 - Compilazione automatica dei campi sulla pagina Shibboleth
 - Invio automatico facoltativo del modulo
+- Schermata di caricamento con logo UniPD durante l'accesso avviato dalla popup
 - Salvataggio delle impostazioni con `chrome.storage.local`
 
 ## Come funziona
@@ -48,13 +49,16 @@ L'estensione verra caricata senza passare attraverso il Chrome Web Store.
 ## Uso
 
 1. Apri il popup dell'estensione dalla barra del browser.
+   - Usa **Entra in STEM eLearning** per aprire direttamente `https://stem.elearning.unipd.it/`; se hai gia una sessione attiva, entri nel sito senza rifare l'accesso.
+   - Il pulsante avvia il percorso Login → SSO. Visitare manualmente STEM o cliccare direttamente "Login" non attiva automaticamente l'accesso SSO.
+   - Usa **Entra in Uniweb** per aprire `https://uniweb.unipd.it/Root.do#shortcut` e avviare il percorso Login. Visitare o usare Uniweb manualmente non attiva l'accesso automatico.
 2. Inserisci il nome utente senza `@...`, ad esempio `mario.rossi`.
 3. Seleziona il profilo corrispondente.
 4. Inserisci la password.
 5. Lascia attivo **Clicca "Accedi" in automatico** oppure disattivalo per compilare i campi senza inviare il modulo.
 6. Premi **Salva Credenziali**.
 
-Aprendo successivamente una pagina di accesso configurata, i dati vengono compilati automaticamente.
+La compilazione automatica e la schermata di caricamento si attivano solo nei flussi avviati dai pulsanti della popup; visitare manualmente i siti non avvia il login automatico.
 
 ## Struttura del progetto
 
@@ -62,13 +66,15 @@ Aprendo successivamente una pagina di accesso configurata, i dati vengono compil
 - `popup.html`: interfaccia delle impostazioni
 - `popup.js`: caricamento e salvataggio delle impostazioni
 - `content.js`: compilazione e eventuale invio del modulo SSO
+- `loading.css`: stile della schermata di caricamento durante il login
+- `logo.png`: logo mostrato nella schermata di caricamento
 - `README.md`: documentazione del progetto
 
 ## Permessi
 
 L'estensione richiede il permesso `storage` per salvare le credenziali e le preferenze localmente nel browser.
 
-Il content script viene eseguito esclusivamente sulle pagine sotto `https://shibidp.cca.unipd.it/*`.
+Il content script viene eseguito esclusivamente sulle pagine sotto `https://shibidp.cca.unipd.it/*`, `https://stem.elearning.unipd.it/*` e `https://uniweb.unipd.it/*`. La schermata di caricamento con il logo UniPD viene mostrata solo durante un flusso avviato dalla popup.
 
 ## Sicurezza
 

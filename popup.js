@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputPass = document.getElementById('password');
   const checkAutoSubmit = document.getElementById('autoSubmit');
   const btnSalva = document.getElementById('salva');
+  const btnEntra = document.getElementById('entra');
+  const btnEntraUniweb = document.getElementById('entraUniweb');
   const divStato = document.getElementById('stato');
 
   // Carica eventuali dati già salvati quando si apre il popup
@@ -33,6 +35,24 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         divStato.textContent = '';
       }, 2500);
+    });
+  });
+
+  btnEntra.addEventListener('click', () => {
+    chrome.storage.local.set({
+      unipd_action_stage: 'root',
+      unipd_action_time: Date.now()
+    }, () => {
+      chrome.tabs.create({ url: 'https://stem.elearning.unipd.it/' });
+    });
+  });
+
+  btnEntraUniweb.addEventListener('click', () => {
+    chrome.storage.local.set({
+      unipd_action_stage: 'uniweb_root',
+      unipd_action_time: Date.now()
+    }, () => {
+      chrome.tabs.create({ url: 'https://uniweb.unipd.it/Root.do#shortcut' });
     });
   });
 });
