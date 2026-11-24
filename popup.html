@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 280px;
+      padding: 15px;
+      margin: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h3 {
+      margin-top: 0;
+      color: #9B0014;
+      font-size: 16px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 8px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      padding: 7px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 12px;
+    }
+    .checkbox-row input {
+      margin-right: 8px;
+    }
+    button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 9px;
+      background-color: #9B0014;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #7a0010;
+    }
+    #stato {
+      margin-top: 10px;
+      font-size: 12px;
+      text-align: center;
+      color: green;
+      font-weight: bold;
+      min-height: 16px;
+    }
+    .nota {
+      margin-top: 10px;
+      font-size: 10px;
+      color: #777;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h3>Impostazioni Accesso</h3>
+
+  <label for="username">Nome utente (senza @)</label>
+  <input type="text" id="username" placeholder="es. mario.rossi">
+
+  <label for="dominio">Profilo / Dominio</label>
+  <select id="dominio">
+    <option value="radio2" selected>@studenti.unipd.it</option>
+    <option value="radio1">@unipd.it</option>
+    <option value="radio3">@ext.unipd.it</option>
+  </select>
+
+  <label for="password">Password</label>
+  <input type="password" id="password" placeholder="La tua password">
+
+  <div class="checkbox-row">
+    <input type="checkbox" id="autoSubmit" checked>
+    <label for="autoSubmit" style="margin: 0; font-weight: normal;">Clicca "Accedi" in automatico</label>
+  </div>
+
+  <button id="salva">Salva Credenziali</button>
+  <div id="stato"></div>
+  <div class="nota">I dati sono salvati solo localmente sul tuo browser.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

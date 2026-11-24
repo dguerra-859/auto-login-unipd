@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Login Portale Studenti (Non Ufficiale)",
+  "version": "2.0",
+  "description": "Compila automaticamente username, dominio e password sulla pagina di accesso SSO.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Impostazioni Auto Login"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://shibidp.cca.unipd.it/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
