@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Auto Login Portale Studenti (Non Ufficiale)",
-  "version": "2.0",
-  "description": "Compila automaticamente username, dominio e password sulla pagina di accesso SSO.",
+  "version": "2.1",
+  "description": "Salta la schermata SSO di Moodle e compila automaticamente username, dominio e password.",
   "permissions": [
     "storage"
   ],
@@ -13,7 +13,8 @@
   "content_scripts": [
     {
       "matches": [
-        "https://shibidp.cca.unipd.it/*"
+        "https://shibidp.cca.unipd.it/*",
+        "https://*.elearning.unipd.it/login/*"
       ],
       "js": [
         "content.js"
