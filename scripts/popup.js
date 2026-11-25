@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSalva = document.getElementById('salva');
   const btnEntra = document.getElementById('entra');
   const btnEntraUniweb = document.getElementById('entraUniweb');
+  const btnApriDashboard = document.getElementById('apriDashboard');
+  const btnAggiornaDashboard = document.getElementById('aggiornaDashboard');
   const divStato = document.getElementById('stato');
 
   const avviaAccesso = (destinazione) => {
@@ -59,5 +61,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnEntraUniweb.addEventListener('click', () => {
     avviaAccesso('uniweb');
+  });
+
+  btnApriDashboard.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('pages/dashboard.html') }, () => {
+      if (chrome.runtime.lastError) {
+        divStato.textContent = 'Impossibile aprire la dashboard.';
+        console.error(chrome.runtime.lastError.message);
+      }
+    });
+  });
+
+  btnAggiornaDashboard.addEventListener('click', () => {
+    divStato.textContent = 'Avvio aggiornamento in background...';
+    btnAggiornaDashboard.disabled = true;
+    chrome.runtime.sendMessage({ type: 'sync-dashboard' }, (risposta) => {
+      btnAggiornaDashboard.disabled = false;
+      if (chrome.runtime.lastError || !risposta) {
+        divStato.textContent = chrome.runtime.lastError
+          ? `Errore di comunicazione: ${chrome.runtime.lastError.message}`
+          : 'Il processo in background non ha restituito una risposta.';
+        console.error(chrome.runtime.lastError ? chrome.runtime.lastError.message : 'Risposta non valida dal processo in background.');
+        return;
+      }
+
+      divStato.textContent = risposta.messaggio;
+      if (!risposta.ok) console.error(risposta.errore || risposta.messaggio);
+    });
   });
 });

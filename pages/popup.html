@@ -70,6 +70,19 @@
     #entraUniweb:hover {
       background-color: #704700;
     }
+    #apriDashboard {
+      background-color: #174b37;
+    }
+    #apriDashboard:hover {
+      background-color: #103a2a;
+    }
+    #aggiornaDashboard {
+      background-color: #44546a;
+      margin-top: 8px;
+    }
+    #aggiornaDashboard:hover {
+      background-color: #344255;
+    }
     #stato {
       margin-top: 10px;
       font-size: 12px;
@@ -110,9 +123,11 @@
   <button id="salva">Salva Credenziali</button>
   <button id="entra">Entra in STEM eLearning</button>
   <button id="entraUniweb">Entra in Uniweb</button>
+  <button id="apriDashboard">Apri dashboard studente</button>
+  <button id="aggiornaDashboard">Aggiorna dati da STEM e Uniweb</button>
   <div id="stato"></div>
-  <div class="nota">I dati sono salvati solo localmente sul tuo browser.</div>
+  <div class="nota">Refresh ogni 10 minuti. Se un portale richiede SSO, tenta una sola volta le credenziali salvate quando l'invio automatico e attivo. I dati restano nel browser.</div>
 
-  <script src="popup.js"></script>
+  <script src="../scripts/popup.js"></script>
 </body>
 </html>

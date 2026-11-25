@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Dashboard studente UniPD</title>
+  <link rel="stylesheet" href="../styles/dashboard.css">
+  <script src="../scripts/dashboard.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="../assets/logo.png" alt="Università degli Studi di Padova">
+      <div>
+        <h1>Dashboard studente UniPD</h1>
+        <p>Profilo, libretto e corsi in un'unica vista</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="refresh-data" class="button button-primary" type="button">Aggiorna da STEM e Uniweb</button>
+      <button id="edit-profile" class="button button-light" type="button">Modifica profilo</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="notice">
+      <p id="sync-message" role="status">I dati salvati sono disponibili anche mentre il refresh in background è in corso.</p>
+      <p id="last-refresh" class="refresh-meta">Ultimo refresh: mai</p>
+      <p class="refresh-meta">Ogni 10 minuti; se un portale richiede SSO, tenta una volta l'accesso con le credenziali salvate (se l'invio automatico è attivo).</p>
+    </div>
+
+    <section class="panel profile-panel" aria-labelledby="profile-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Area personale</p>
+          <h2 id="profile-title">Profilo studente</h2>
+        </div>
+        <span id="profile-source-status" class="status-chip">In attesa di sincronizzazione</span>
+      </div>
+      <div class="profile-grid">
+        <div class="profile-primary">
+          <div id="avatar" class="avatar" aria-hidden="true">ST</div>
+          <div>
+            <h3 id="student-name">Dati non ancora disponibili</h3>
+            <p id="student-course" class="muted">Il profilo verra compilato dai dati riconosciuti su Uniweb.</p>
+          </div>
+        </div>
+        <dl class="facts">
+          <div>
+            <dt>Matricola</dt>
+            <dd class="copy-field">
+              <span id="student-id">—</span>
+              <button class="copy-button" type="button" data-copy-target="student-id" data-copy-label="Matricola" aria-label="Copia matricola">Copia</button>
+            </dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd class="copy-field">
+              <span id="student-email">—</span>
+              <button class="copy-button" type="button" data-copy-target="student-email" data-copy-label="Email" aria-label="Copia email">Copia</button>
+            </dd>
+          </div>
+          <div><dt>Anno di corso</dt><dd id="student-year">—</dd></div>
+          <div><dt>Anno di immatricolazione</dt><dd id="student-enrollment-year">—</dd></div>
+        </dl>
+      </div>
+      <p id="copy-feedback" class="visually-hidden" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="career-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Uniweb</p>
+          <h2 id="career-title">Libretto e carriera</h2>
+        </div>
+        <span id="career-source-status" class="status-chip">In attesa di sincronizzazione</span>
+      </div>
+      <div class="metrics">
+        <article class="metric">
+          <span>CFU acquisiti</span>
+          <strong id="earned-credits">—</strong>
+          <small id="total-credits">Totale non disponibile</small>
+        </article>
+        <article class="metric">
+          <span>Media</span>
+          <strong id="grade-average">—</strong>
+          <small>Su 30</small>
+        </article>
+        <article class="metric metric-accent">
+          <span>Base di laurea stimata</span>
+          <strong id="degree-estimate">—</strong>
+          <small>Stima calcolata dalla media</small>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Insegnamento</th><th>Voto</th><th>CFU</th></tr></thead>
+          <tbody id="grades-list"><tr><td colspan="3" class="empty">Nessun esame riconosciuto nei dati salvati.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="courses-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">STEM</p>
+          <h2 id="courses-title">I miei corsi</h2>
+          <p class="muted">Collegamenti ai corsi riconosciuti da STEM.</p>
+        </div>
+        <span id="stem-source-status" class="status-chip">In attesa di sincronizzazione</span>
+      </div>
+      <div id="courses-list" class="course-list">
+        <p class="empty">Nessun corso riconosciuto nei dati salvati.</p>
+      </div>
+    </section>
+
+    <footer>
+      I dati vengono letti dalle pagine UniPD in background e salvati nel browser. Non vengono inviati ai server di questo progetto.
+    </footer>
+  </main>
+
+  <dialog id="profile-dialog">
+    <form id="profile-form" method="dialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Modifica manuale</p>
+          <h2>Profilo e carriera</h2>
+        </div>
+        <button id="close-dialog" class="icon-button" type="button" aria-label="Chiudi">×</button>
+      </div>
+      <div class="form-grid">
+        <label>Nome e cognome<input id="edit-name" type="text" autocomplete="name"></label>
+        <label>Matricola<input id="edit-student-id" type="text"></label>
+        <label>Email istituzionale<input id="edit-email" type="email" autocomplete="email"></label>
+        <label>Corso di studio<input id="edit-course" type="text"></label>
+        <label>Anno di corso<input id="edit-year" type="text"></label>
+        <label>Anno di immatricolazione<input id="edit-enrollment-year" type="text"></label>
+        <label>CFU acquisiti<input id="edit-credits" type="number" min="0"></label>
+        <label>CFU totali<input id="edit-total-credits" type="number" min="0"></label>
+        <label>Media<input id="edit-average" type="number" min="0" max="30" step="0.01"></label>
+      </div>
+      <div class="dialog-actions">
+        <button id="cancel-dialog" class="button button-light" type="button">Annulla</button>
+        <button class="button button-primary" type="submit">Salva</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

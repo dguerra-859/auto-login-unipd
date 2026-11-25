@@ -1,21 +1,28 @@
 {
   "manifest_version": 3,
   "name": "Auto Login Portale Studenti (Non Ufficiale)",
-  "version": "2.9",
-  "description": "Salta la schermata SSO di Moodle e compila automaticamente username, dominio e password.",
+  "version": "3.10",
+  "description": "Accesso SSO UniPD e dashboard locale con sincronizzazione automatica da STEM e Uniweb.",
   "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "alarms",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://shibidp.cca.unipd.it/*",
+    "https://stem.elearning.unipd.it/*",
+    "https://uniweb.unipd.it/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "scripts/background.js"
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "pages/popup.html",
     "default_title": "Impostazioni Auto Login"
   },
   "content_scripts": [
@@ -26,10 +33,10 @@
         "https://uniweb.unipd.it/*"
       ],
       "css": [
-        "loading.css"
+        "styles/loading.css"
       ],
       "js": [
-        "content.js"
+        "scripts/content.js"
       ],
       "run_at": "document_start"
     }
@@ -37,7 +44,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "logo.png"
+        "assets/logo.png"
       ],
       "matches": [
         "https://shibidp.cca.unipd.it/*",
