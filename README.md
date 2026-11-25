@@ -24,6 +24,7 @@ L'utente e l'unico responsabile della gestione delle proprie credenziali, dell'u
 - Dashboard studente apribile dalla popup
 - Sincronizzazione manuale e automatica ogni 10 minuti di profilo/libretto Uniweb e corsi STEM
 - Salvataggio locale dei dati dashboard e modifica manuale dei campi
+- Tema dashboard automatico secondo la preferenza del browser, con pulsante per passare tra automatico, chiaro e scuro
 
 ## Come funziona
 

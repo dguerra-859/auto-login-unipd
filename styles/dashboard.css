@@ -222,3 +222,82 @@ dialog form { padding: 22px; }
   .form-grid { grid-template-columns: 1fr; }
   .top-actions { align-items: stretch; flex-direction: column; }
 }
+
+:root {
+  color-scheme: light dark;
+  color: light-dark(#263238, #e1e7eb);
+  background: light-dark(#f4f6f8, #15191d);
+}
+
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+.topbar {
+  background: light-dark(#fff, #20262b);
+  border-color: light-dark(#e1e6ea, #39434a);
+}
+.brand h1, .panel-heading h2, .dialog-heading h2 { color: light-dark(#202a30, #f0f3f5); }
+.brand p, .muted, .refresh-meta, .facts dt, .metric span, .metric small,
+th, .empty, footer, .icon-button { color: light-dark(#74818a, #9aa7af); }
+.button-light {
+  background: light-dark(#edf0f2, #343e45);
+  color: light-dark(#35434b, #e1e7eb);
+}
+.button-light:hover { background: light-dark(#e0e5e8, #3e4a52); }
+.notice, .panel, dialog {
+  border-color: light-dark(#e0e5e8, #364149);
+  background: light-dark(#fff, #20262b);
+  color: light-dark(#263238, #e1e7eb);
+}
+.eyebrow, .metric-accent strong, .course-link small { color: light-dark(#9b0014, #f06a79); }
+.status-chip { border-color: light-dark(#dfe5e8, #39434a); color: light-dark(#64727a, #b0bbc2); }
+.status-chip[data-state="updated"] {
+  border-color: light-dark(#b7e0c6, #356847);
+  background: light-dark(#effaf2, #20372a);
+  color: light-dark(#22623a, #a4ddb3);
+}
+.status-chip[data-state="error"] {
+  border-color: light-dark(#f0c5c8, #754149);
+  background: light-dark(#fff3f3, #3a2529);
+  color: light-dark(#8d1b26, #f0a3ab);
+}
+.facts div { background: light-dark(#f7f8f9, #293138); }
+.copy-button {
+  border-color: light-dark(#dfe5e8, #39434a);
+  background: light-dark(#fff, #252c31);
+  color: light-dark(#59676f, #b0bbc2);
+}
+.copy-button:hover, .copy-button[data-copied="true"] {
+  border-color: light-dark(#b7e0c6, #356847);
+  background: light-dark(#effaf2, #20372a);
+  color: light-dark(#22623a, #a4ddb3);
+}
+.copy-button:focus-visible, .form-grid input:focus {
+  outline-color: light-dark(#9b001433, #f06a7944);
+  border-color: light-dark(#9b0014, #f06a79);
+}
+.metric {
+  border-color: light-dark(#e6eaed, #3a454c);
+  background: light-dark(#fafbfc, #252c31);
+}
+.metric strong { color: light-dark(#202a30, #f0f3f5); }
+.metric-accent {
+  border-color: light-dark(#f0d0d4, #754149);
+  background: light-dark(#fff6f7, #352529);
+}
+th, td { border-color: light-dark(#edf0f2, #374149); }
+.course-link {
+  border-color: light-dark(#e3e8eb, #364149);
+  color: light-dark(#33434b, #d9e1e5);
+}
+.course-link:hover {
+  border-color: light-dark(#d7a2a9, #f06a79);
+  background: light-dark(#fff8f9, #352529);
+  color: light-dark(#9b0014, #f06a79);
+}
+.form-grid label { color: light-dark(#59676f, #b0bbc2); }
+.form-grid input {
+  border-color: light-dark(#dce2e6, #465159);
+  color: light-dark(#25323a, #e1e7eb);
+  background: light-dark(#fff, #293138);
+}
